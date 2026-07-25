@@ -1,67 +1,67 @@
-# MeteorScript
+# MeteorScript — Guide simple
 
-Mini-langage de scripting pour les créateurs de jeux Wired. Il permet de stocker des valeurs temporaires, faire des calculs, vérifier des conditions, déplacer des joueurs ou des mobis, manipuler des états, et construire des logiques plus souples qu'avec les Wired classiques seuls.
+MeteorScript, c'est un petit langage de script pour créer des jeux Wired plus poussés. Concrètement, ça sert à retenir des valeurs, faire des calculs, tester des conditions, bouger des joueurs ou des mobis, et gérer des états — bref, tout ce que les Wired classiques ne savent pas bien faire tout seuls.
 
 ## Sommaire
 
-- [Pourquoi MeteorScript](#pourquoi-meteorscript)
-- [Où l'utiliser](#où-lutiliser)
-- [Règles simples](#règles-simples)
-- [Variables](#variables)
-- [Variables automatiques](#variables-automatiques)
-- [Commandes d'action](#commandes-daction)
-- [Conditions](#conditions)
-- [Fonctions](#fonctions)
-- [Erreurs possibles](#erreurs-possibles)
-- [Exemples pratiques](#exemples-pratiques)
-- [Bonnes pratiques](#bonnes-pratiques)
-- [Limites connues](#limites-connues)
-- [Aide-mémoire](#aide-mémoire)
+- [Quand l'utiliser](#quand-lutiliser)
+- [Comment le placer dans une room](#comment-le-placer-dans-une-room)
+- [À savoir avant de commencer](#à-savoir-avant-de-commencer)
+- [Les variables](#les-variables)
+- [Les variables auto (fournies par le serveur)](#les-variables-auto-fournies-par-le-serveur)
+- [Les commandes (Actions)](#les-commandes-actions)
+- [Les conditions](#les-conditions)
+- [Les fonctions utiles](#les-fonctions-utiles)
+- [Si ça renvoie une erreur](#si-ça-renvoie-une-erreur)
+- [Exemples concrets](#exemples-concrets)
+- [Conseils pour ne pas se planter](#conseils-pour-ne-pas-se-planter)
+- [Ce que MeteorScript ne fait pas (encore)](#ce-que-meteorscript-ne-fait-pas-encore)
+- [Aide-mémoire rapide](#aide-mémoire-rapide)
 
-## Pourquoi MeteorScript
+## Quand l'utiliser
 
-Les Wired classiques restent parfaits pour déclencher des évènements, organiser une pile, déplacer des mobis visuellement ou utiliser des comportements déjà prêts. MeteorScript devient utile dès qu'une logique demande des **variables**, des **calculs**, des **comparaisons** ou **plusieurs branches**.
+Garde les Wired classiques pour tout ce qui est simple : déclencher un évènement, organiser une pile, bouger un mobi visuellement. Passe à MeteorScript dès que t'as besoin de :
 
-Il est déjà préférable aux Wired classiques pour :
+- compter un score (global ou par joueur)
+- calculer un score à partir de plusieurs valeurs
+- vérifier où se trouve un joueur
+- sauvegarder une étape/checkpoint pour un joueur
+- gérer un mini-jeu à plusieurs étapes
+- tirer un truc au hasard
+- remplacer un empilement énorme de SuperWired qui fait la même chose en boucle
 
-- un compteur global ou par joueur
-- un score calculé à partir de plusieurs valeurs
-- une condition basée sur la position du joueur
-- un checkpoint personnel
-- une logique de mini-jeu avec plusieurs étapes
-- une sélection aléatoire simple
-- un système qui demanderait beaucoup de SuperWired copiés-collés
+## Comment le placer dans une room
 
-À terme, MeteorScript doit remplacer les systèmes Wired complexes ou difficiles à maintenir par du code simple, lisible et plus performant.
+Utilise ces deux mobis :
 
-## Où l'utiliser
-
-| Mobi | Sert à quoi |
+| Mobi | À quoi il sert |
 | --- | --- |
-| **Wired Action MeteorScript** | Exécute une commande MeteorScript |
-| **Wired Condition MeteorScript** | Vérifie une condition MeteorScript |
+| **Wired Action MeteorScript** | Lance une commande |
+| **Wired Condition MeteorScript** | Vérifie une condition |
 
-L'ancien format `meteorscript:` dans certains SuperWired existe encore pour compatibilité, mais il est **déconseillé** pour les nouvelles créations : les Wired dédiés sont plus lisibles et plus simples à debug.
+Il existe aussi une ancienne méthode (`meteorscript:` dans un SuperWired) gardée pour ne pas casser les vieux jeux, mais ne t'en sers pas pour du neuf : les deux mobis dédiés sont plus clairs à relire et à corriger.
 
-## Règles simples
+## À savoir avant de commencer
 
-- Une **Action** exécute une seule commande, une **Condition** vérifie une seule condition.
-- Les commandes sont sensibles à la casse : `toUpper` ✅, `toupper` ❌.
-- Les arguments sont séparés par des espaces, sans guillemets magiques (`"texte"` reste du texte avec des guillemets).
-- Certaines commandes prennent tout le reste de la ligne comme valeur (ex : `set var1 Bonjour tout le monde`).
-- Les variables sont **temporaires** : elles vivent tant que la room ou le joueur est chargé (la persistance arrivera avec **MeteorScript DB**).
-- Coordonnées de room : `X Y`, parfois `Z`. Ids de mobis : les vrais ids posés dans la room.
+- Une Action = une seule commande. Une Condition = une seule vérification.
+- Respecte les majuscules dans les noms de commandes (`toUpper`, pas `toupper`).
+- Les mots dans une commande sont séparés par des espaces, pas de guillemets spéciaux.
+- Certaines commandes prennent tout ce qui suit comme texte, espaces compris (ex : `set var1 Salut tout le monde`).
+- **Les variables s'effacent** quand la room ou le joueur se décharge — pour l'instant rien n'est permanent (ça viendra avec MeteorScript DB, prévu plus tard).
+- Les positions dans une room, c'est `X Y` (parfois `Z` pour la hauteur).
 
-## Variables
+## Les variables
 
-| Variable | Portée | Exemple | Usage typique |
+Deux types, selon qui les utilise :
+
+| Type | Qui la voit | Exemple | Pour quoi faire |
 | --- | --- | --- | --- |
-| `var1` à `var64` | Room (partagée entre tous les joueurs) | `var1` | Score global, étape du jeu, état d'une porte |
-| `usrvr1` à `usrvr32` | Joueur déclencheur | `usrvr1` | Score perso, checkpoint perso, choix du joueur |
+| `var1` → `var64` | Toute la room | `var1` | score commun, avancée du jeu, état d'une porte |
+| `usrvr1` → `usrvr32` | Un seul joueur | `usrvr1` | score perso, checkpoint, choix du joueur |
 
-⚠️ Sans joueur dans le contexte du Wired, une commande sur `usrvrX` ne fait rien.
+Si deux joueurs touchent à la même `varX`, ils modifient la même valeur — attention aux conflits. À l'inverse, une `usrvrX` ne marche que s'il y a bien un joueur qui déclenche le Wired.
 
-Les variables s'écrivent **sans `%`** :
+Pas de `%` pour écrire une variable :
 
 ```text
 set var1 10
@@ -69,160 +69,151 @@ set usrvr1 %username%
 set var2 calc(var1 + 5)
 ```
 
-Utiliser une variable dans une valeur la remplace par son contenu : si `var2` vaut `rouge`, `set var1 var2` met `rouge` dans `var1`, pas le texte `var2`.
+Si tu réutilises une variable dans une commande, elle est remplacée par sa valeur — pas par son nom. Donc si `var2` contient `rouge`, écrire `set var1 var2` va mettre `rouge` dans `var1`.
 
-> 💡 Initialisez vos variables numériques avant de les utiliser dans `calc` — une variable vide n'est pas un nombre.
+💡 Pense à donner une valeur de départ à tes variables numériques avant de faire un calcul dessus, sinon `calc` ne saura pas quoi en faire.
 
-## Variables automatiques
+## Les variables auto (fournies par le serveur)
 
-Fournies par le serveur, elles s'écrivent **avec `%`**.
+Contrairement aux tiennes, celles-ci s'écrivent **avec** `%` et sont déjà remplies par le jeu.
 
-**Room** (extrait) : `%roomId%`, `%roomName%`, `%roomOwner%`, `%roomPvpState%`, `%roomBankDiams%`, `%timestamp%`, `%maxInt%`...
+**Sur la room** : `%roomId%`, `%roomName%`, `%roomOwner%`, `%roomPvpState%`, `%roomBankDiams%`, `%timestamp%`, `%maxInt%`, etc.
 
-**Joueur/entité déclencheuse** (extrait) : `%username%`, `%userId%`, `%userPosX/Y/Z%`, `%userFigure%`, `%userDiams%`, `%hasRights%`, `%userLvl%`, `%points%`...
+**Sur le joueur qui déclenche** : `%username%`, `%userId%`, `%userPosX%` / `%userPosY%` / `%userPosZ%`, `%userFigure%`, `%userDiams%`, `%hasRights%`, `%userLvl%`, `%points%`, etc. (elles n'existent que s'il y a bien un joueur dans le contexte du Wired)
 
-**Déclencheur** : `%data%` — dépend du trigger (id de mobi, pseudo, texte, ou `undefined`). Testez avec un montage simple si vous ne connaissez pas sa valeur.
+**`%data%`** : contient ce que le trigger envoie — un id de mobi, un pseudo, un texte... ça dépend totalement du Wired qui l'a déclenché. Fais un test rapide si t'es pas sûr de ce qu'il contient.
 
-## Commandes d'action
+## Les commandes (Actions)
 
-*(dans un Wired Action MeteorScript)*
+*(à mettre dans un Wired Action MeteorScript)*
 
-**Variables**
+**Modifier une variable**
 
-| Commande | Effet | Exemple |
+| Commande | Ce que ça fait | Exemple |
 | --- | --- | --- |
-| `set varX valeur` | Remplace une variable de room | `set var1 25` |
-| `set usrvrX valeur` | Remplace une variable joueur | `set usrvr1 checkpoint_2` |
-| `replace varX ancien nouveau` | Remplace un morceau de texte | `replace var1 rouge bleu` |
-| `erase varX texte` | Supprime un morceau de texte | `erase var1 _old` |
+| `set varX valeur` | Change la valeur | `set var1 25` |
+| `replace varX ancien nouveau` | Remplace un bout de texte | `replace var1 rouge bleu` |
+| `erase varX texte` | Enlève un bout de texte | `erase var1 _old` |
 | `concat` / `append varX valeur` | Ajoute du texte à la fin | `concat var1 _fin` |
-| `trim varX` | Retire les espaces | `trim var1` |
+| `trim varX` | Enlève les espaces autour | `trim var1` |
 | `toUpper` / `toLower varX` | Change la casse | `toUpper var1` |
 
-**Mobis**
+(Ça marche pareil avec `usrvrX` à la place de `varX`.)
 
-| Commande | Effet | Exemple |
+**Bouger ou modifier un mobi précis**
+
+| Commande | Ce que ça fait | Exemple |
 | --- | --- | --- |
-| `movetobyid furniId X Y` | Déplace le mobi vers `X Y` | `movetobyid 123456 5 8` |
-| `setstatebyid furniId state` | Met l'état d'un mobi | `setstatebyid 123456 1` |
-| `addstatebyid furniId value` | Ajoute une valeur à l'état actuel | `addstatebyid 123456 1` |
+| `movetobyid furniId X Y` | Déplace ce mobi à cette position | `movetobyid 123456 5 8` |
+| `setstatebyid furniId state` | Change son état | `setstatebyid 123456 1` |
+| `addstatebyid furniId value` | Ajoute une valeur à son état actuel | `addstatebyid 123456 1` |
 
-**Déplacement**
+**Déplacements généraux**
 
-| Commande | Effet | Exemple |
-| --- | --- | --- |
-| `moveto X Y` | Déplace le contexte actuel (mobis sélectionnés > mobi de l'évènement > entité déclencheuse) | `moveto 10 12` |
-| `warpto X Y [Z]` | Téléporte le joueur déclencheur | `warpto 10 12 1.5` |
-
-> Pour être explicite : `movetobyid` pour un mobi précis, `warpto` pour un joueur.
-
-**Joueur**
-
-| Commande | Effet |
+| Commande | Ce que ça fait |
 | --- | --- |
-| `forcesit` / `forcelay` | Force le joueur à s'asseoir/s'allonger |
-| `teleport roomId` | Demande l'entrée dans une autre room |
+| `moveto X Y` | Déplace ce que le Wired a sous la main : les mobis sélectionnés, ou sinon le joueur qui a déclenché |
+| `warpto X Y [Z]` | Téléporte le joueur qui a déclenché |
 
-**Paramètres de jeu** (rooms de jeux custom) : `setPvpAuto`, `setMaxZombies value` (1-50), `setMinZombies value` (1-25), `setSpawnFreq value` (1-30), `setMaxBoxes value` (1-100).
+Pour éviter les surprises : `movetobyid` si tu veux viser un mobi précis, `warpto` si tu veux bouger un joueur.
 
-**Debug** : `echo texte` envoie un whisper `DEBUG: ...` au joueur — pratique pour tester, à éviter dans un jeu public (risque de spam).
+**Sur le joueur**
 
-## Conditions
+- `forcesit` / `forcelay` — force à s'asseoir / s'allonger
+- `teleport roomId` — demande à entrer dans une autre room (passage direct si même proprio, sinon demande classique)
 
-*(dans un Wired Condition MeteorScript)*
+**Réglages de jeu custom** : `setPvpAuto`, `setMaxZombies` (1-50), `setMinZombies` (1-25), `setSpawnFreq` (1-30), `setMaxBoxes` (1-100).
 
-**Comparaisons**
+**Pour tester** : `echo texte` t'envoie un message privé de debug. Pratique en test, à retirer avant de publier le jeu (ça peut spammer).
 
-```text
-var1 == 10        # égal
-var1 != fini       # différent
-%userPosX% < 10    # plus petit
-var1 >= 1          # plus grand ou égal
-```
+## Les conditions
 
-**Présence sur une case**
+*(à mettre dans un Wired Condition MeteorScript)*
+
+**Comparer deux valeurs**
 
 ```text
-playerAt(5,8)
-noPlayerAt(10,12)
+var1 == 10     # égal
+var1 != fini   # différent
+var1 >= 1      # plus grand ou égal
 ```
 
-**Types de valeur**
+**Vérifier si une case est occupée**
+
+```text
+playerAt(5,8)      # vrai si quelqu'un est dessus
+noPlayerAt(10,12)  # vrai si personne
+```
+
+**Vérifier le type d'une valeur**
 
 ```text
 isInt(var1)
 isBool(%hasRights%)
-!isNull(var2)      # inversion avec !
+!isNull(var2)   # le ! inverse le test
 ```
 
-**Recherche dans un texte** — préférez `indexOf` à l'ancien `(in)` déconseillé :
+**Chercher un texte dans un autre**
 
 ```text
 indexOf(%username%;Admin) != -1
 ```
 
-## Fonctions
+(Évite l'ancien `(in)`, il est peu fiable — `indexOf` est plus sûr.)
 
-Utilisables dans les commandes **et** les conditions (et lues par les Wired classiques quand leur texte passe par MeteorScript).
+## Les fonctions utiles
 
-**Nombres**
+Elles marchent dans les commandes ET les conditions.
 
-```text
-rand(1,6)          -> nombre aléatoire entre 1 et 6
-calc(2 + 3 x 4)     -> 14 (arrondi)
-calc2(5 / 2)        -> 2.5 (garde les décimales)
-round(2.6) / floor(2.9) / ceil(2.1)
-```
-
-**Texte** — avec `%username%` = `Meteor` :
+**Pour les chiffres**
 
 ```text
-length(%username%)            -> 6
-charAt(%username%;0)          -> M
-substr(%username%;0;3)        -> Met
-indexOf(%username%;e)         -> 1
-typeof(var1)                  -> int / float / bool / str / null
+rand(1,6)        -> tire un nombre entre 1 et 6
+calc(2 + 3 x 4)   -> 14 (résultat arrondi)
+calc2(5 / 2)      -> 2.5 (garde les décimales)
 ```
 
-**Mobis**
+**Pour le texte** (exemple avec `%username%` = `Meteor`)
+
+```text
+length(%username%)     -> 6
+charAt(%username%;0)   -> M
+substr(%username%;0;3) -> Met
+```
+
+**Pour les mobis**
 
 ```text
 getFurniState(123456)
 getFurniCoords(123456)
 ```
 
-Renvoient un texte d'erreur (ex : `InvalidFurniIdException`) si le mobi ou la room est invalide.
+Si l'id du mobi n'existe pas, ça renvoie un message d'erreur plutôt que de planter.
 
-## Erreurs possibles
+## Si ça renvoie une erreur
 
-| Erreur | Cause typique |
+| Tu vois... | Ça veut dire... |
 | --- | --- |
-| `SyntaxError` | Syntaxe incomprise (ex : `calc(2 + )`) |
-| `NumberFormatException` | Nombre attendu mais valeur invalide |
-| `IndexOutOfBoundsException` | Position hors de la taille du texte |
-| `InvalidRoomException` | Room non disponible dans le contexte |
-| `InvalidFurniIdException` | Id de mobi inexistant dans la room |
-| `InvalidPositionException` | Mobi introuvable sur le plan de la room |
-| `null` | Valeur vide ou absente |
+| `SyntaxError` | La commande est mal écrite |
+| `NumberFormatException` | Un nombre était attendu, autre chose est arrivé |
+| `IndexOutOfBoundsException` | Tu cherches un caractère qui n'existe pas dans le texte |
+| `InvalidFurniIdException` | Ce mobi n'existe pas dans la room |
+| `InvalidPositionException` | Le mobi n'a pas de position valide |
+| `null` | La valeur est vide |
 
-⚠️ Une condition qui compare directement une erreur compare du texte — testez toujours vos ids de mobis avant de vous y fier.
+Teste toujours tes ids de mobis avant de t'y fier — une erreur est traitée comme du texte, pas comme un vrai état.
 
-## Exemples pratiques
+## Exemples concrets
 
-**Compteur global**
+**Un compteur qui augmente**
 
 ```text
-# Au lancement du jeu
-set var1 0
-
-# Action à chaque déclenchement
-set var1 calc(var1 + 1)
-
-# Condition pour déclencher autre chose
-var1 >= 10
+set var1 0                  # au démarrage
+set var1 calc(var1 + 1)     # à chaque déclenchement
+var1 >= 10                  # condition pour la suite
 ```
 
-**Checkpoint par joueur**
+**Retenir une étape par joueur**
 
 ```text
 set usrvr1 checkpoint_2
@@ -231,80 +222,56 @@ set usrvr1 checkpoint_2
 usrvr1 == checkpoint_2
 ```
 
-**Ouvrir un passage si la case est libre**
+**Ouvrir un passage si personne n'est dessus**
 
 ```text
-# Condition
-noPlayerAt(8,10)
-# Action
-movetobyid 123456 8 10
+noPlayerAt(8,10)            # condition
+movetobyid 123456 8 10      # action
 ```
 
-**Récompense aléatoire**
+**Tirer une récompense au hasard**
 
 ```text
 set var1 rand(1,3)
 ```
-puis trois conditions séparées : `var1 == 1`, `var1 == 2`, `var1 == 3`.
+Puis fais trois conditions séparées : `var1 == 1`, `var1 == 2`, `var1 == 3`.
 
-**Déplacer les mobis sélectionnés vs un mobi précis**
+## Conseils pour ne pas se planter
 
-```text
-moveto 5 7          # déplace les mobis sélectionnés dans le Wired
-movetobyid 123456 5 7  # déplace un mobi précis, peu importe la sélection
-```
-
-## Bonnes pratiques
-
-- **Restez lisible** : séparez calcul et condition plutôt que tout empiler au même endroit.
-- **Réservez des plages de variables** par rôle, par exemple :
+- Sépare bien calcul et vérification plutôt que tout mettre au même endroit — plus simple à relire plus tard.
+- Organise tes variables par bloc, par exemple :
 
   | Variables | Rôle |
   | --- | --- |
-  | `var1` à `var10` | État global du jeu |
+  | `var1` à `var10` | État du jeu |
   | `var11` à `var20` | Scores |
-  | `var21` à `var30` | Timers et cooldowns |
   | `usrvr1` à `usrvr5` | Progression du joueur |
-  | `usrvr6` à `usrvr10` | Choix temporaires |
 
-- **Vérifiez avant d'agir** : `%hasRights% == true`, `noPlayerAt(5,5)`, `isInt(var1)`...
-- **Évitez le spam** : pas de changement d'état à chaque tick, pas de boucles sans pause, pas d'`echo` en public.
-- **Préférez les Wired dédiés** à l'ancien préfixe `meteorscript:` dans les SuperWired.
+- Vérifie avant d'agir : `%hasRights% == true`, `noPlayerAt(5,5)`...
+- Évite de tout faire à chaque tick ou de spam `echo` en public.
+- Passe par les Wired dédiés plutôt que l'ancien préfixe `meteorscript:`.
 
-## Limites connues
+## Ce que MeteorScript ne fait pas (encore)
 
-- Variables temporaires uniquement (persistance à venir avec **MeteorScript DB**).
-- Commandes sensibles à la casse.
-- Pas de vrai système de guillemets pour les arguments.
-- `meteorscript:` gardé pour compatibilité mais déconseillé.
-- `moveto` dépend du contexte — préférez `movetobyid`/`warpto` pour être explicite.
-- `(in)` déconseillé pour les textes — utilisez `indexOf(...) != -1`.
-- Un mauvais id de mobi renvoie un texte d'erreur, pas un crash.
-- Trop de scripts lourds/fréquents peuvent atteindre les limites Wired de la room.
+- Pas de sauvegarde permanente — tout s'efface au rechargement (à venir avec MeteorScript DB).
+- Sensible aux majuscules.
+- Pas de vrais guillemets pour les arguments.
+- `moveto` dépend du contexte — préfère `movetobyid`/`warpto` si tu veux être sûr de viser la bonne cible.
 
-## Aide-mémoire
+## Aide-mémoire rapide
 
 ```text
 set var1 10
 set var1 calc(var1 + 1)
-set usrvr1 %username%
-
 var1 >= 10
-usrvr1 == Cyb
-%hasRights% == true
 noPlayerAt(5,8)
-
 movetobyid 123456 5 8
-setstatebyid 123456 1
 warpto 10 12
-teleport 456
-
 rand(1,6)
 calc(2 + 3 x 4)
-length(%username%)
 indexOf(%username%;a)
 ```
 
 ---
 
-Le meilleur réflexe avec MeteorScript : **faites petit, testez, puis assemblez**. Les gros systèmes deviennent beaucoup plus faciles à corriger quand chaque Wired a un rôle clair.
+Le réflexe à garder : teste petit, vérifie que ça marche, puis assemble. C'est plus simple à corriger quand chaque Wired a un rôle bien précis.
