@@ -60,7 +60,10 @@ Exemples d'utilisation :
 | **Wired Action MeteorScript** | Exécute une commande |
 | **Wired Condition MeteorScript** | Vérifie une condition |
 
-L'ancien format : dans un Wired Action MeteorScript.
+L'ancien format : meteorscript: reste compatible mais il est déconseillé.
+
+Utilisez plutôt : set var1 10
+dans un Wired Action MeteorScript.
 
 ---
 
@@ -68,4 +71,5 @@ L'ancien format : dans un Wired Action MeteorScript.
 
 - Les commandes sont sensibles aux majuscules.
 - Les arguments sont séparés par des espaces.
-- Les coordonnées utilisent le format :
+- Les coordonnées utilisent le format : X Y ou X Y Z
+
